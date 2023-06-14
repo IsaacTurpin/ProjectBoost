@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class Movement : MonoBehaviour
 {
     Rigidbody rb;
-    public bool thrustActivated = false;
+    [SerializeField] bool thrustActivated = false;
     [SerializeField] float mainThrust = 20000f;
 
     Vector2 input;
@@ -14,6 +14,10 @@ public class Movement : MonoBehaviour
 
     AudioSource audioSource;
     [SerializeField] AudioClip mainEngine;
+
+    [SerializeField] ParticleSystem mainEngineParticles;
+    [SerializeField] ParticleSystem leftThrusterParticles;
+    [SerializeField] ParticleSystem rightThrusterParticles;
 
     // Start is called before the first frame update
     void Start()
@@ -31,21 +35,29 @@ public class Movement : MonoBehaviour
 
     void ProcessThrust()
     {
+        rb.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
+
         if (!audioSource.isPlaying)
         {
             audioSource.PlayOneShot(mainEngine);
         }
-        rb.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
-
         
+        if(!mainEngineParticles.isPlaying) 
+        {
+            mainEngineParticles.Play();
+        }
+        Invoke(nameof(StopActiveThrust), 0.1f);
     }
-
+    void StopActiveThrust()
+    {
+        thrustActivated = false;
+    }
     private void ThrustInput()
     {
         if(thrustActivated) 
         {
             ProcessThrust();
-            thrustActivated = false;
+            //thrustActivated = false;
         }
         else if(audioSource.isPlaying && !thrustActivated)
         {
@@ -57,6 +69,7 @@ public class Movement : MonoBehaviour
     public void StopAudio()
     {
         audioSource.Stop();
+        mainEngineParticles.Stop();
     }
 
     void ProcessRotation()
@@ -64,15 +77,40 @@ public class Movement : MonoBehaviour
         float xValue = input.x;
         if (xValue < 0)
         {
-            ApplyRotation(rotationThrust);
+            RotateLeft();
         }
 
         else if (xValue > 0) 
         {
-            ApplyRotation(-rotationThrust);
+            RotateRight();
+        }
+        else
+        {
+            StopRotating();
         }
     }
 
+    void RotateLeft()
+    {
+        ApplyRotation(rotationThrust);
+        if (!rightThrusterParticles.isPlaying)
+        {
+            rightThrusterParticles.Play();
+        }
+    }
+    void RotateRight()
+    {
+        ApplyRotation(-rotationThrust);
+        if (!leftThrusterParticles.isPlaying)
+        {
+            leftThrusterParticles.Play();
+        }
+    }
+    void StopRotating()
+    {
+        rightThrusterParticles.Stop();
+        leftThrusterParticles.Stop();
+    }
     public void ApplyRotation(float rotationThisFrame)
     {
         rb.freezeRotation = true; // frezzing rotation so we can manually rotate
