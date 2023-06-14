@@ -7,10 +7,10 @@ public class Movement : MonoBehaviour
 {
     Rigidbody rb;
     public bool thrustActivated = false;
-    [SerializeField] float mainThrust = 100f;
+    [SerializeField] float mainThrust = 20000f;
 
     Vector2 input;
-    [SerializeField] float rotationThrust = 1f;
+    [SerializeField] float rotationThrust = 100f;
 
     AudioSource audioSource;
 
